@@ -5,13 +5,15 @@ import random
 pygame.init()
 
 # Constants for the game
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 600, 700  # Increased height to accommodate buttons
 GRID_SIZE = 8
 CELL_SIZE = WIDTH // GRID_SIZE
 CANDY_TYPES = 4
 
 # Colors
 WHITE = (255, 255, 255)
+BUTTON_COLOR = (100, 100, 250)
+BUTTON_HOVER_COLOR = (150, 150, 250)
 
 # Create the game window
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -71,24 +73,42 @@ def swap_candies(grid, pos1, pos2):
     
     return False
 
-# Automated player logic to find and execute a move that results in a match
 def auto_play(grid):
-    # Try all possible swaps and make the first valid move found
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            # Check right swap
             if col < GRID_SIZE - 1 and swap_candies(grid, (row, col), (row, col + 1)):
                 return True
             
-            # Check down swap
             if row < GRID_SIZE - 1 and swap_candies(grid, (row, col), (row + 1, col)):
                 return True
     
     return False
 
+def draw_button(text, rect_position):
+    x_pos, y_pos, width, height = rect_position
+    mouse_pos = pygame.mouse.get_pos()
+    
+    # Change button color on hover
+    if x_pos < mouse_pos[0] < x_pos + width and y_pos < mouse_pos[1] < y_pos + height:
+        color = BUTTON_HOVER_COLOR
+    else:
+        color = BUTTON_COLOR
+    
+    pygame.draw.rect(screen, color, rect_position)
+    
+    # Render text on button
+    font = pygame.font.SysFont(None, 36)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect(center=(x_pos + width // 2, y_pos + height // 2))
+    screen.blit(text_surface, text_rect)
+
 def main():
     grid = generate_grid()
     score = 0
+    auto_playing = False
+    
+    start_button_rect = (50, HEIGHT - 80, WIDTH // 3 - 60, 50)
+    stop_button_rect = (WIDTH // 3 + 10 + WIDTH //3 -60 , HEIGHT -80 , WIDTH //3 -60 ,50 )
     
     running = True
     
@@ -98,16 +118,27 @@ def main():
         
         font = pygame.font.SysFont(None, 36)
         score_text = font.render(f"Score: {score}", True, (0, 0, 0))
-        screen.blit(score_text, (10, HEIGHT - 40))
+        screen.blit(score_text,(10 , HEIGHT -120 ))
+        
+        draw_button("Start", start_button_rect)
+        draw_button("Stop", stop_button_rect)
         
         pygame.display.flip()
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x , mouse_y= event.pos
+                
+                if start_button_rect[0]<mouse_x<start_button_rect[0]+start_button_rect[2] and start_button_rect[1]<mouse_y<start_button_rect[1]+start_button_rect[3]:
+                    auto_playing=True
+                
+                elif stop_button_rect[0]<mouse_x<stop_button_rect[0]+stop_button_rect[2] and stop_button_rect[1]<mouse_y<stop_button_rect[1]+stop_button_rect[3]:
+                    auto_playing=False
         
-        # Automatically play the game by finding and making moves
-        if auto_play(grid):
+        if auto_playing and auto_play(grid):
             while True:
                 score += remove_matches_and_apply_gravity(grid)
                 if not find_matches(grid):
