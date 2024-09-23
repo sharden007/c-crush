@@ -127,12 +127,14 @@ def main():
         draw_grid(grid)
         
         font=pygame.font.SysFont(None ,36 )
+        small_font=pygame.font.SysFont(None ,24 ) # Smaller font size
+        
         score_text=font.render(f"Score: {score}", True,(0 ,0 ,0 ))
         screen.blit(score_text,(10 , HEIGHT -120 ))
         
-        # Display match and non-match counters at the top right corner of the grid
-        match_text=font.render(f"Matches: {match_counter}", True,(0 ,0 ,0 ))
-        non_match_text=font.render(f"Non-Matches: {non_match_counter}", True,(0 ,0 ,0 ))
+        # Display match and non-match counters at the top right corner of the grid with smaller fonts
+        match_text=small_font.render(f"Matches: {match_counter}", True,(0 ,0 ,0 ))
+        non_match_text=small_font.render(f"Non-Matches: {non_match_counter}", True,(0 ,0 ,0 ))
         
         screen.blit(match_text,(WIDTH-200 ,10 ))
         screen.blit(non_match_text,(WIDTH-200 ,50 ))
