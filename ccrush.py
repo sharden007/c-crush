@@ -19,6 +19,10 @@ BUTTON_HOVER_COLOR = (150, 150, 250)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Candy Crush")
 
+# Initialize match and non-match counters
+match_counter = 0
+non_match_counter = 0
+
 def generate_grid():
     return [[random.randint(1, CANDY_TYPES) for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 
@@ -73,14 +77,21 @@ def swap_candies(grid, pos1, pos2):
     
     return False
 
-def auto_play(grid):
+# Automated player logic to find and execute a move that results in a match
+def auto_play_with_counters(grid):
+    global match_counter, non_match_counter
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             if col < GRID_SIZE - 1 and swap_candies(grid, (row, col), (row, col + 1)):
+                match_counter += 1
                 return True
             
-            if row < GRID_SIZE - 1 and swap_candies(grid, (row, col), (row + 1, col)):
+            elif row < GRID_SIZE - 1 and swap_candies(grid, (row, col), (row + 1, col)):
+                match_counter += 1
                 return True
+            
+            else:
+                non_match_counter += 1
     
     return False
 
@@ -88,37 +99,43 @@ def draw_button(text, rect_position):
     x_pos, y_pos, width, height = rect_position
     mouse_pos = pygame.mouse.get_pos()
     
-    # Change button color on hover
     if x_pos < mouse_pos[0] < x_pos + width and y_pos < mouse_pos[1] < y_pos + height:
         color = BUTTON_HOVER_COLOR
     else:
         color = BUTTON_COLOR
     
-    pygame.draw.rect(screen, color, rect_position)
+    pygame.draw.rect(screen,color ,rect_position )
     
-    # Render text on button
-    font = pygame.font.SysFont(None, 36)
-    text_surface = font.render(text, True, WHITE)
-    text_rect = text_surface.get_rect(center=(x_pos + width // 2, y_pos + height // 2))
-    screen.blit(text_surface, text_rect)
+    font=pygame.font.SysFont(None ,36 )
+    text_surface=font.render(text ,True ,WHITE )
+    text_rect=text_surface.get_rect(center=(x_pos+width//2 ,y_pos+height//2 ))
+    screen.blit(text_surface,text_rect )
 
 def main():
-    grid = generate_grid()
-    score = 0
-    auto_playing = False
+    global match_counter ,non_match_counter 
+    grid=generate_grid()
+    score=0 
+    auto_playing=False 
     
-    start_button_rect = (50, HEIGHT - 80, WIDTH // 3 - 60, 50)
-    stop_button_rect = (WIDTH // 3 + 10 + WIDTH //3 -60 , HEIGHT -80 , WIDTH //3 -60 ,50 )
+    start_button_rect=(50 ,HEIGHT-80 ,WIDTH//3-60 ,50 )
+    stop_button_rect=(WIDTH//3+10+WIDTH//3-60 ,HEIGHT-80 ,WIDTH//3-60 ,50 )
     
-    running = True
+    running=True 
     
     while running:
         screen.fill(WHITE)
         draw_grid(grid)
         
-        font = pygame.font.SysFont(None, 36)
-        score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+        font=pygame.font.SysFont(None ,36 )
+        score_text=font.render(f"Score: {score}", True,(0 ,0 ,0 ))
         screen.blit(score_text,(10 , HEIGHT -120 ))
+        
+        # Display match and non-match counters at the top right corner of the grid
+        match_text=font.render(f"Matches: {match_counter}", True,(0 ,0 ,0 ))
+        non_match_text=font.render(f"Non-Matches: {non_match_counter}", True,(0 ,0 ,0 ))
+        
+        screen.blit(match_text,(WIDTH-200 ,10 ))
+        screen.blit(non_match_text,(WIDTH-200 ,50 ))
         
         draw_button("Start", start_button_rect)
         draw_button("Stop", stop_button_rect)
@@ -126,25 +143,25 @@ def main():
         pygame.display.flip()
         
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            if event.type==pygame.QUIT:
+                running=False 
             
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x , mouse_y= event.pos
+            elif event.type==pygame.MOUSEBUTTONDOWN:
+                mouse_x ,mouse_y=event.pos
                 
                 if start_button_rect[0]<mouse_x<start_button_rect[0]+start_button_rect[2] and start_button_rect[1]<mouse_y<start_button_rect[1]+start_button_rect[3]:
-                    auto_playing=True
+                    auto_playing=True 
                 
                 elif stop_button_rect[0]<mouse_x<stop_button_rect[0]+stop_button_rect[2] and stop_button_rect[1]<mouse_y<stop_button_rect[1]+stop_button_rect[3]:
-                    auto_playing=False
+                    auto_playing=False 
         
-        if auto_playing and auto_play(grid):
+        if auto_playing and auto_play_with_counters(grid):
             while True:
-                score += remove_matches_and_apply_gravity(grid)
+                score+=remove_matches_and_apply_gravity(grid)
                 if not find_matches(grid):
                     break
 
     pygame.quit()
 
-if __name__ == "__main__":
-    main()
+if __name__=="__main__":
+	main()
